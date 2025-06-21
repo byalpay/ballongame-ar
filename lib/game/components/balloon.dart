@@ -6,16 +6,21 @@ import 'dart:math';
 import '../../../core/constants/game_constants.dart';
 
 class BalloonComponent extends CustomPainterComponent with TapCallbacks {
+  final void Function(Color, int)? onPopped;
+  final double speed;
+  final Color color;
+  final double sizeValue;
+  final int point;
   bool _isExploding = false;
   double _explosionTimer = 0.0;
   final double _explosionDuration = GameConstants.explosionDuration;
-  final double speed = GameConstants.balloonSpeed;
-  final Color color = GameConstants.balloonColors[Random().nextInt(GameConstants.balloonColors.length)];
 
-  BalloonComponent() : super(
-    size: Vector2(GameConstants.balloonSize, GameConstants.balloonSize),
-    painter: BalloonPainter(frame: 0, color: GameConstants.balloonColors[Random().nextInt(GameConstants.balloonColors.length)])
-  );
+  BalloonComponent({this.onPopped, this.speed = GameConstants.balloonSpeed, required this.color, required double size, required this.point})
+    : sizeValue = size,
+      super(
+        size: Vector2(size, size),
+        painter: BalloonPainter(frame: 0, color: color, radius: size / 2 - 47),
+      );
 
   @override
   void update(double dt) {
@@ -51,6 +56,13 @@ class BalloonComponent extends CustomPainterComponent with TapCallbacks {
     if (!_isExploding) {
       _isExploding = true;
       _explosionTimer = 0.0;
+      if (onPopped != null) {
+        try {
+          onPopped!(color, point);
+        } catch (e) {
+          // Hata olursa sessizce geç
+        }
+      }
     }
   }
 }
@@ -58,13 +70,14 @@ class BalloonComponent extends CustomPainterComponent with TapCallbacks {
 class BalloonPainter extends CustomPainter {
   int frame;
   final Color color;
+  final double radius;
 
-  BalloonPainter({required this.frame, required this.color});
+  BalloonPainter({required this.frame, required this.color, required this.radius});
 
   @override
   void paint(Canvas canvas, Size size) {
     final Offset center = Offset(size.width / 2, size.height / 2 - 20);
-    final double radius = GameConstants.balloonRadius;
+    final double r = radius;
 
     final balloonPaint = Paint()..color = color;
     final strokePaint = Paint()
@@ -86,18 +99,18 @@ class BalloonPainter extends CustomPainter {
 
     if (frame == 0) {
       // 🎈 Balon - İlk kare
-      canvas.drawCircle(center, radius, balloonPaint);
-      canvas.drawCircle(center, radius, strokePaint);
+      canvas.drawCircle(center, r, balloonPaint);
+      canvas.drawCircle(center, r, strokePaint);
 
       canvas.drawCircle(center.translate(10, -10), 8, highlightPaint);
 
       canvas.drawRect(
-        Rect.fromCenter(center: center.translate(0, radius + 5), width: 20, height: 8),
+        Rect.fromCenter(center: center.translate(0, r + 5), width: 20, height: 8),
         basePaint,
       );
 
       final path = Path();
-      path.moveTo(center.dx, center.dy + radius + 10);
+      path.moveTo(center.dx, center.dy + r + 10);
       path.relativeLineTo(0, 10);
       path.relativeLineTo(-5, 10);
       path.relativeLineTo(5, 10);
@@ -106,15 +119,15 @@ class BalloonPainter extends CustomPainter {
       canvas.drawPath(path, stringPaint);
     } else if (frame == 1) {
       // 💥 Patlama başlıyor - 2. kare
-      canvas.drawCircle(center, radius, balloonPaint);
-      canvas.drawCircle(center, radius, strokePaint);
+      canvas.drawCircle(center, r, balloonPaint);
+      canvas.drawCircle(center, r, strokePaint);
       canvas.drawCircle(center.translate(10, -10), 8, highlightPaint);
       canvas.drawRect(
-        Rect.fromCenter(center: center.translate(0, radius + 5), width: 20, height: 8),
+        Rect.fromCenter(center: center.translate(0, r + 5), width: 20, height: 8),
         basePaint,
       );
       final path = Path();
-      path.moveTo(center.dx, center.dy + radius + 10);
+      path.moveTo(center.dx, center.dy + r + 10);
       path.relativeLineTo(0, 10);
       path.relativeLineTo(-5, 10);
       path.relativeLineTo(5, 10);
