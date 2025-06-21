@@ -1,7 +1,6 @@
-import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_exit_app/flutter_exit_app.dart';
-import 'balloon_game.dart';
+import 'package:flame/game.dart';
+import 'game/balloon_game.dart';
 
 void main() {
   runApp(const MyApp());
@@ -14,47 +13,67 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Balon Patlatma Oyunu',
-      debugShowCheckedModeBanner: false,
-      home: const MainMenu(),
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+        useMaterial3: true,
+      ),
+      home: const GameScreen(),
     );
   }
 }
 
-class MainMenu extends StatelessWidget {
-  const MainMenu({super.key});
-
-  void _exitGame() {
-    FlutterExitApp.exitApp();
-  }
+class GameScreen extends StatelessWidget {
+  const GameScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.lightBlue[100],
-      body: Center(
+      body: GameWidget(
+        game: BalloonGame(),
+        overlayBuilderMap: {
+          'pause': (context, game) => const PauseMenu(),
+        },
+      ),
+    );
+  }
+}
+
+class PauseMenu extends StatelessWidget {
+  const PauseMenu({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.8),
+          borderRadius: BorderRadius.circular(20),
+        ),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
             const Text(
-              '🎈 Balon Patlatma Oyunu 🎈',
-              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 50),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => GameWidget(game: BalloonGame()),
-                  ),
-                );
-              },
-              child: const Text('Başla'),
+              'Oyun Duraklatıldı',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: _exitGame,
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              child: const Text('Çıkış'),
+              onPressed: () {
+                // Oyunu devam ettir
+              },
+              child: const Text('Devam Et'),
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: () {
+                // Oyunu yeniden başlat
+              },
+              child: const Text('Yeniden Başlat'),
             ),
           ],
         ),
