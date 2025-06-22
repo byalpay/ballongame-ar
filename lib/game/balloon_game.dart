@@ -4,6 +4,8 @@ import 'package:flame/events.dart';
 import 'components/balloon.dart';
 import '../core/constants/game_constants.dart';
 import 'dart:math';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 class BalloonGame extends FlameGame with TapCallbacks {
   final Random _random = Random();
@@ -28,6 +30,7 @@ class BalloonGame extends FlameGame with TapCallbacks {
     try {
       scoreNotifier.value = _score;
       _checkLevelUp();
+      _checkHighScore();
     } catch (e) {}
   }
 
@@ -156,5 +159,37 @@ class BalloonGame extends FlameGame with TapCallbacks {
     overlays.add('score');
     resumeEngine();
     _startSpawningBalloons();
+  }
+
+  Future<void> saveHighScore(int score) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final now = DateTime.now().toIso8601String();
+      List<String> scores = prefs.getStringList('high_scores') ?? [];
+      scores.add(jsonEncode({'score': score, 'date': now}));
+      // En iyi 3 skoru tut
+      scores.sort((a, b) {
+        final sa = jsonDecode(a)['score'] as int;
+        final sb = jsonDecode(b)['score'] as int;
+        return sb.compareTo(sa);
+      });
+      if (scores.length > 3) scores = scores.sublist(0, 3);
+      await prefs.setStringList('high_scores', scores);
+    } catch (e) {}
+  }
+
+  Future<List<Map<String, dynamic>>> getHighScores() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      List<String> scores = prefs.getStringList('high_scores') ?? [];
+      return scores.map((s) => jsonDecode(s) as Map<String, dynamic>).toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  void _checkHighScore() async {
+    // Oyun bittiğinde veya skor artınca çağrılabilir
+    await saveHighScore(_score);
   }
 } 

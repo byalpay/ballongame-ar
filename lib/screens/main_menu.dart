@@ -1,6 +1,10 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+import '../game/balloon_game.dart';
+import 'package:flutter_exit_app/flutter_exit_app.dart';
 
 class MainMenuScreen extends StatefulWidget {
   final VoidCallback onStart;
@@ -113,7 +117,15 @@ class _MainMenuScreenState extends State<MainMenuScreen> with SingleTickerProvid
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: widget.onShowScores,
+                    onPressed: () async {
+                      final game = BalloonGame();
+                      final scores = await game.getHighScores();
+                      // ignore: use_build_context_synchronously
+                      showDialog(
+                        context: context,
+                        builder: (context) => _HighScoresDialog(scores: scores),
+                      );
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.orange,
                       foregroundColor: Colors.white,
@@ -125,7 +137,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> with SingleTickerProvid
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: widget.onExit,
+                    onPressed: _exitApp,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.redAccent,
                       foregroundColor: Colors.white,
@@ -149,6 +161,13 @@ class _MainMenuScreenState extends State<MainMenuScreen> with SingleTickerProvid
       balloon.y -= balloon.speed * 0.015;
     }
     _balloons.removeWhere((b) => b.y < -0.2);
+  }
+
+  void _exitApp() {
+    // Çıkış fonksiyonu (mobilde uygulamadan çıkış için)
+    try {
+      FlutterExitApp.exitApp(iosForceExit: true);
+    } catch (e) {}
   }
 }
 
@@ -211,36 +230,251 @@ class _HowToPlayDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Nasıl Oynanır?'),
-      content: SingleChildScrollView(
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Colors.orange, Colors.redAccent],
+          ),
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
+                  ),
+                ),
+                child: const Text(
+                  '🎮 Nasıl Oynanır?',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orange,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    _buildInstruction('🎯', 'Ekranda yukarı doğru çıkan balonlara dokunarak patlat!'),
+                    _buildInstruction('📏', 'Büyük balonlar daha fazla puan kazandırır.'),
+                    _buildInstruction('🔴', 'Kırmızı balonları patlatırsan 5 puan kaybedersin.'),
+                    _buildInstruction('💨', 'Balon kaçırırsan puanın 1 azalır.'),
+                    _buildInstruction('⭐', 'Her 20 puanda bir sonraki levele geçersin, balonlar daha hızlı çıkar.'),
+                    _buildInstruction('🏆', '10. levele ulaşırsan oyunu kazanırsın!'),
+                    _buildInstruction('🎈', 'Farklı renk ve boyutlarda balonlar var, büyük balonlar daha çok puan verir.'),
+                    _buildInstruction('🔥', 'En yüksek skoru yapmaya çalış!'),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(20),
+                child: ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.orange,
+                    textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text('Anladım!'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInstruction(String icon, String text) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withOpacity(0.3)),
+      ),
+      child: Row(
+        children: [
+          Text(
+            icon,
+            style: const TextStyle(fontSize: 24),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HighScoresDialog extends StatelessWidget {
+  final List<Map<String, dynamic>> scores;
+  const _HighScoresDialog({required this.scores, super.key});
+
+  String _formatDate(String iso) {
+    try {
+      final dt = DateTime.parse(iso);
+      return '${dt.day.toString().padLeft(2, '0')}.${dt.month.toString().padLeft(2, '0')}.${dt.year} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+    } catch (e) {
+      return iso;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final icons = [
+      const Icon(Icons.emoji_events, color: Color(0xFFFFD700), size: 40), // Altın
+      const Icon(Icons.emoji_events, color: Color(0xFFC0C0C0), size: 40), // Gümüş
+      const Icon(Icons.emoji_events, color: Color(0xFFCD7F32), size: 40), // Bronz
+    ];
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Colors.blueAccent, Colors.purpleAccent],
+          ),
+        ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            Text('• Ekranda yukarı doğru çıkan balonlara dokunarak patlat!'),
-            SizedBox(height: 8),
-            Text('• Büyük balonlar daha fazla puan kazandırır.'),
-            SizedBox(height: 8),
-            Text('• Kırmızı balonları patlatırsan 5 puan kaybedersin.'),
-            SizedBox(height: 8),
-            Text('• Balon kaçırırsan puanın 1 azalır.'),
-            SizedBox(height: 8),
-            Text('• Her 20 puanda bir sonraki levele geçersin, balonlar daha hızlı çıkar.'),
-            SizedBox(height: 8),
-            Text('• 10. levele ulaşırsan oyunu kazanırsın!'),
-            SizedBox(height: 8),
-            Text('• Farklı renk ve boyutlarda balonlar var, büyük balonlar daha çok puan verir.'),
-            SizedBox(height: 8),
-            Text('• En yüksek skoru yapmaya çalış!'),
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  topRight: Radius.circular(20),
+                ),
+              ),
+              child: const Text(
+                '🏆 En Yüksek Skorlar',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blueAccent,
+                ),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(20),
+              child: scores.isEmpty
+                  ? const Column(
+                      children: [
+                        Icon(Icons.sports_esports, size: 60, color: Colors.white70),
+                        SizedBox(height: 16),
+                        Text(
+                          'Henüz skor kaydedilmedi',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Oyun oynayarak ilk skorunu yap!',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    )
+                  : Column(
+                      children: List.generate(scores.length, (i) {
+                        final s = scores[i];
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.white.withOpacity(0.3)),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: icons[i],
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '${s['score']} puan',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 20,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    Text(
+                                      _formatDate(s['date']),
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.white70,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+                    ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(20),
+              child: ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.blueAccent,
+                  textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: const Text('Kapat'),
+              ),
+            ),
           ],
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Tamam'),
-        ),
-      ],
     );
   }
 } 

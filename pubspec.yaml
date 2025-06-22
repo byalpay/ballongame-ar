@@ -35,6 +35,7 @@ dependencies:
   flame_audio: ^2.1.1
   flutter_exit_app: ^1.0.2 # Çıkış için
   cupertino_icons: ^1.0.8
+  shared_preferences: ^2.2.2
 
 dev_dependencies:
   flutter_test:

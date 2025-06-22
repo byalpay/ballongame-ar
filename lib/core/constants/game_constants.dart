@@ -30,6 +30,6 @@ class GameConstants {
     balloonSpeedVeryFast,
   ];
 
-  static const List<double> balloonSizes = [130.0, 150.0, 170.0, 200.0];
+  static const List<double> balloonSizes = [130.0, 140.0, 160.0, 180.0];
   static const List<int> balloonPoints = [1, 2, 3, 4];
 } 
