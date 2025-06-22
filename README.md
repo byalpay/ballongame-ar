@@ -1,106 +1,16 @@
-```markdown
-# 🎈 Balon Patlatma Oyunu - Flutter Flame ile
+# community_game
 
-Bu proje, Flutter + Flame engine kullanılarak geliştirilmiş basit ama eğlenceli bir balon patlatma oyunudur.  
-Amaç, rastgele çıkan 7 renkli balonlar arasından sadece **kırmızı** balonlara tıklayarak onları patlatmaktır.  
-🎯 Diğer renklere tıklamak herhangi bir işlem yapmaz.
+A new Flutter project with flame engine
 
----
+## Getting Started
 
-## 🧩 Kullanılan Teknolojiler
+This project is a starting point for a Flutter application.
 
-- [Flutter](https://flutter.dev/)
-- [Flame Game Engine](https://flame-engine.org/)
-- [Dart](https://dart.dev/)
+A few resources to get you started if this is your first Flutter project:
 
----
+- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
+- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
 
-## 📲 Uygulamayı Çalıştırma / APK Oluşturma
-
-### Gerekli Araçlar:
-- Flutter SDK (3.7.2 veya üstü)
-- Android Studio veya VS Code
-- Cihazda internet bağlantısı (ilk build için)
-- Android cihaz veya emulator
-
-### Kurulum Adımları:
-
-```bash
-# Projeyi klonla
-git clone https://github.com/byalpay/ballongame-ar.git
-cd ballongame-ar
-
-# Gerekli paketleri yükle
-flutter pub get
-
-# Android APK üret
-flutter build apk --release
-
-# Cihazda çalıştırmak için:
-flutter run
-```
-
-📦 APK dosyası burada oluşur:  
-`build/app/outputs/flutter-apk/app-release.apk`
-
----
-
-## 🕹️ Oyun Özellikleri
-
-- 🎨 7 farklı renk balon (kırmızı, mavi, yeşil, sarı, turuncu, mor, pembe)
-- 👆 Sadece **kırmızı balonlara tıklanabiliyor** ve patlıyor
-- 🧼 Sade ve kullanıcı dostu arayüz
-- 📋 Başla ve Çıkış butonlarıyla ana menü
-- ❌ Diğer renklerde işlem yapılmaz (ileri aşamada ceza puanı verilebilir)
-
----
-
-## 📅 Haftalık Geliştirme Planı
-
-| Hafta | Yapılacaklar |
-|-------|--------------|
-| ✅ 1. Hafta | Menü sistemi, balonlar ve tıklama mekaniği |
-| ⏳ 2. Hafta | **Patlama animasyonu** ve efekt sesleri eklenecek |
-| ⏳ 3. Hafta | **Skor sistemi** ve yanlış tıklamalarda ceza puanı |
-| ⏳ 4. Hafta | **Zaman modu**: süre biterse oyun sonu ekranı |
-| ⏳ 5. Hafta | **Yüksek skor** kaydı (SharedPreferences ile) |
-| ⏳ 6. Hafta | **AR Desteği** eklenmeye başlanacak |
-| ⏳ 7. Hafta | Yayınlama öncesi testler ve görsel iyileştirmeler |
-
----
-
-## 👨‍💻 Geliştirici
-
-- **Berkan Alpay**  
-- GitHub: [@byalpay](https://github.com/byalpay)
-
----
-
-## 📝 Lisans
-
-This project is licensed under the MIT License.
-
----
-
-## 📸 Ekran Görüntüsü (isteğe bağlı)
-
-> 📷 Oyun ekranından görseller ekleyebilirsin:  
-> Örnek:
-> - `assets/screenshots/main_menu.png`
-> - `assets/screenshots/gameplay.png`
-```
-
----
-
-### 📌 Ne Yapacaksın?
-
-1. Proje klasörüne gir
-2. `README.md` dosyasını aç veya oluştur
-3. Bu içeriği kopyalayıp yapıştır
-4. Terminalde şunları yaz:
-
-```bash
-git add README.md
-git commit -m "Proje için detaylı README eklendi"
-git push
-```
+For help getting started with Flutter development, view the
+[online documentation](https://docs.flutter.dev/), which offers tutorials,
+samples, guidance on mobile development, and a full API reference.
